@@ -1,7 +1,58 @@
-use teloxide::types::UserId;
+use teloxide::types::{User, UserId};
 use uuid::Uuid;
+use diesel::prelude::*;
+use crate::schema::players;
+use crate::services::database::establish_connection;
 
+#[derive(Queryable)]
 pub struct Player {
-    player_id: Uuid,
-    user_id: UserId
+    pub id: Uuid,
+    pub user_id: String,
+    pub username: String
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = players)]
+pub struct NewPlayer<'a> {
+    pub id: Uuid,
+    pub user_id: &'a str,
+    pub username: &'a str,
+}
+
+pub fn create_player(user_id: &UserId, username: &str) -> QueryResult<Player> {
+
+    let connection = &mut establish_connection();
+    let user_id = &user_id.0.to_string();
+    let player = NewPlayer{id: Uuid::new_v4(), user_id, username};
+
+    diesel::insert_into(players::table)
+        .values(&player)
+        .get_result(connection)
+}
+
+pub fn get_player(user: &UserId) -> QueryResult<Player> {
+    use crate::schema::players::dsl::*;
+    let connection = &mut establish_connection();
+    players
+        .filter(user_id.eq(&user.0.to_string()))
+        .first::<Player>(connection)
+
+}
+
+pub fn register( user: &User) -> Result<(Player, String), diesel::result::Error> {
+    let player= get_player(&user.id);
+    let firstname = user.first_name.clone();
+    let username = user.username.clone().unwrap_or(firstname);
+    return match player {
+        Ok(player) => Ok((player, format!("Welcome back {}", username))),
+        Err(_) => {
+            let new_player = create_player(
+                &user.id,
+                username.as_str());
+            match new_player {
+                Ok(player) => Ok((player, format!("Welcome {}", username))),
+                Err(err) => Err(err)
+            }
+        }
+    }
 }
