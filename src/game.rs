@@ -1,9 +1,9 @@
 mod game_status;
-mod player;
+pub mod player;
 use teloxide::types::{ChatId};
 use uuid::Uuid;
 use game_status::GameStatus;
-use player::Player;
+use crate::game::player::Player;
 
 struct Game {
     game_id: Uuid,
