@@ -1,8 +1,13 @@
-use log::debug;
+use log::{debug, error};
 use teloxide::{Bot, utils::command::BotCommands};
+use teloxide::payloads::SendMessage;
 use teloxide::prelude::*;
-use crate::game::player::register;
-use crate::game::new_game;
+use teloxide::requests::JsonRequest;
+use crate::commands::direct_commands::register;
+use crate::commands::group_commands::new_game;
+
+pub mod direct_commands;
+pub mod group_commands;
 
 #[derive(BotCommands, Clone)]
 #[command(rename_rule = "lowercase", description = "These commands are supported:")]
@@ -11,26 +16,32 @@ pub enum Command {
     Help,
     #[command(description = "register for new accounts")]
     Register,
+    #[command(description = "same as register")]
+    Start,
     #[command(description = "Create New Game")]
     NewGame,
 }
 
 pub async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
     match cmd {
-        Command::Help => bot.send_message(msg.chat.id, Command::descriptions().to_string()).await?,
-        Command::Register => {
-            let user = msg.from().expect("User not found");
-            let (player, message) = register(user).expect("User not found");
-            debug!("{} player loaded", player.username);
-            bot.send_message(msg.chat.id, message).await?
-        },
-        Command::NewGame => {
-            let chat = msg.chat.id;
-            let (game, message) = new_game(&chat).expect("Game not found");
-            debug!("{} game loaded", game.chat_id);
-            bot.send_message(msg.chat.id, message).await?
-        }
+        Command::Help => parse_help(bot, msg).await,
+        Command::Register => register(bot, msg).await,
+        Command::Start => register(bot, msg).await,
+        Command::NewGame => new_game(bot, msg).await
     };
 
     Ok(())
+}
+
+pub async fn parse_help(bot: Bot, msg: Message) {
+    let message: String;
+    if msg.chat.is_private() {
+        message = direct_commands::Command::descriptions().to_string();
+    } else if msg.chat.is_group() {
+        message = group_commands::Command::descriptions().to_string();
+    } else {
+        error!("Invalid chat : {}", msg.chat.id);
+        panic!("Error: Invalid chat type");
+    }
+    bot.send_message(msg.chat.id, message).await;
 }

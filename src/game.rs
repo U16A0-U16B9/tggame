@@ -36,17 +36,3 @@ pub fn create_game(chat: &ChatId) -> QueryResult<Game> {
         .values(&game)
         .get_result(connection)
 }
-
-pub fn new_game(chat: &ChatId) -> QueryResult<(Game, String)> {
-    let game_result = get_active_game(chat);
-    match game_result {
-        Ok(game) => Ok((game, format!("Game already exists"))),
-        Err(_) => {
-            let game = create_game(chat).unwrap_or_else(|error| {
-                error!("Error creating game: {}", error);
-                panic!("Error creating game for {}", chat)
-            });
-            Ok((game, format!("Game created\nPlease type /join to join the game")))
-        }
-    }
-}

@@ -38,21 +38,3 @@ pub fn get_player(user: &UserId) -> QueryResult<Player> {
         .first::<Player>(connection)
 
 }
-
-pub fn register( user: &User) -> Result<(Player, String), diesel::result::Error> {
-    let player= get_player(&user.id);
-    let firstname = user.first_name.clone();
-    let username = user.username.clone().unwrap_or(firstname);
-    return match player {
-        Ok(player) => Ok((player, format!("Welcome back {}", username))),
-        Err(_) => {
-            let new_player = create_player(
-                &user.id,
-                username.as_str());
-            match new_player {
-                Ok(player) => Ok((player, format!("Welcome {}", username))),
-                Err(err) => Err(err)
-            }
-        }
-    }
-}
