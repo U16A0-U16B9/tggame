@@ -1,10 +1,8 @@
-use log::{debug, error};
-use teloxide::{Bot, utils::command::BotCommands};
-use teloxide::payloads::SendMessage;
-use teloxide::prelude::*;
-use teloxide::requests::JsonRequest;
 use crate::commands::direct_commands::register;
 use crate::commands::group_commands::new_game;
+use log::error;
+use teloxide::prelude::*;
+use teloxide::{utils::command::BotCommands, Bot};
 
 pub mod direct_commands;
 pub mod group_commands;
@@ -27,7 +25,7 @@ pub async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> 
         Command::Help => parse_help(bot, msg).await,
         Command::Register => register(bot, msg).await,
         Command::Start => register(bot, msg).await,
-        Command::NewGame => new_game(bot, msg).await
+        Command::NewGame => new_game(bot, msg).await,
     };
 
     Ok(())
@@ -43,5 +41,5 @@ pub async fn parse_help(bot: Bot, msg: Message) {
         error!("Invalid chat : {}", msg.chat.id);
         panic!("Error: Invalid chat type");
     }
-    bot.send_message(msg.chat.id, message).await;
+    bot.send_message(msg.chat.id, message).await.unwrap();
 }

@@ -1,7 +1,7 @@
+use crate::commands::{answer, Command};
+use crate::services::bootstrap;
 use std::future::Future;
 use teloxide::prelude::*;
-use crate::services::bootstrap;
-use crate::commands::{answer, Command};
 
 pub fn init() -> impl Future {
     bootstrap::start();
