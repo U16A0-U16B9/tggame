@@ -1,8 +1,8 @@
 mod app;
-mod game;
-mod services;
 pub mod commands;
+mod game;
 pub mod schema;
+mod services;
 
 #[tokio::main]
 async fn main() {

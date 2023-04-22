@@ -1,13 +1,11 @@
 mod game_status;
 pub mod player;
 use crate::schema::games;
-use log::error;
-use teloxide::types::{ChatId};
-use uuid::Uuid;
-use game_status::GameStatus;
-use diesel::prelude::*;
-use crate::game;
 use crate::services::database::establish_connection;
+use diesel::prelude::*;
+use game_status::GameStatus;
+use teloxide::types::ChatId;
+use uuid::Uuid;
 
 #[derive(Queryable, Insertable)]
 pub struct Game {
@@ -19,9 +17,7 @@ pub struct Game {
 pub fn get_active_game(chat: &ChatId) -> QueryResult<Game> {
     use crate::schema::games::dsl::*;
     let connection = &mut establish_connection();
-    games
-        .filter(chat_id.eq(&chat.0.to_string()))
-        .first::<Game>(connection)
+    games.filter(chat_id.eq(&chat.0.to_string())).first::<Game>(connection)
 }
 
 pub fn create_game(chat: &ChatId) -> QueryResult<Game> {
@@ -32,21 +28,5 @@ pub fn create_game(chat: &ChatId) -> QueryResult<Game> {
         status: GameStatus::LookingForGroup,
     };
 
-    diesel::insert_into(games::table)
-        .values(&game)
-        .get_result(connection)
-}
-
-pub fn new_game(chat: &ChatId) -> QueryResult<(Game, String)> {
-    let game_result = get_active_game(chat);
-    match game_result {
-        Ok(game) => Ok((game, format!("Game already exists"))),
-        Err(_) => {
-            let game = create_game(chat).unwrap_or_else(|error| {
-                error!("Error creating game: {}", error);
-                panic!("Error creating game for {}", chat)
-            });
-            Ok((game, format!("Game created\nPlease type /join to join the game")))
-        }
-    }
+    diesel::insert_into(games::table).values(&game).get_result(connection)
 }
