@@ -25,4 +25,13 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(games, players,);
+diesel::table! {
+    roles (id) {
+        id -> Uuid,
+        name -> Varchar,
+        description -> Varchar,
+        win_condition -> Varchar,
+    }
+}
+
+diesel::allow_tables_to_appear_in_same_query!(games, players, roles,);

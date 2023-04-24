@@ -1,5 +1,7 @@
 mod game_status;
 pub mod player;
+pub mod role;
+pub mod win_conditions;
 use crate::schema::games;
 use crate::services::database::establish_connection;
 use diesel::prelude::*;
