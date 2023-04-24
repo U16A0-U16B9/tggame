@@ -7,5 +7,5 @@ pub enum WinConditions {
     #[strum(serialize = "You win if you die")]
     Die,
     #[strum(serialize = "Eliminate all Villagers")]
-    EliminateVillagers
+    EliminateVillagers,
 }

@@ -45,14 +45,14 @@ impl Role {
             "Just an average folk".to_string(),
             WinConditions::EliminateWerewolves,
         )
-            .expect(format!("Error seeding role {}", Roles::Villager.to_string()).as_str());
+        .expect(format!("Error seeding role {}", Roles::Villager.to_string()).as_str());
 
         Role::create(
             Roles::Tanner,
             "You hate your job and your life".to_string(),
             WinConditions::Die,
         )
-            .expect(format!("Error seeding role {}", Roles::Tanner.to_string()).as_str());
+        .expect(format!("Error seeding role {}", Roles::Tanner.to_string()).as_str());
 
         Role::create(
             Roles::Seer,
@@ -66,6 +66,6 @@ impl Role {
             "Each night choose a player to eliminate".to_string(),
             WinConditions::EliminateVillagers,
         )
-            .expect(format!("Error seeding role {}", Roles::Werewolf.to_string()).as_str());
+        .expect(format!("Error seeding role {}", Roles::Werewolf.to_string()).as_str());
     }
 }

@@ -1,6 +1,6 @@
-use std::env;
 use crate::services::bootstrap;
 use crate::services::seeds::seed;
+use std::env;
 
 mod app;
 pub mod commands;
@@ -18,6 +18,6 @@ async fn main() {
 
     match args.get(1).expect("Cannot retrieve param").as_str() {
         "seed" => seed(),
-        _ => panic!("Invalid param {}", args.first().unwrap())
+        _ => panic!("Invalid param {}", args.first().unwrap()),
     }
 }
