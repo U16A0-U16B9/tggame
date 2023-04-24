@@ -1,3 +1,7 @@
+use crate::services::bootstrap;
+use crate::services::seeds::seed;
+use std::env;
+
 mod app;
 pub mod commands;
 mod game;
@@ -6,5 +10,14 @@ mod services;
 
 #[tokio::main]
 async fn main() {
-    app::init().await;
+    bootstrap::start();
+    let args: Vec<String> = env::args().collect();
+    if args.is_empty() {
+        app::init().await;
+    }
+
+    match args.get(1).expect("Cannot retrieve param").as_str() {
+        "seed" => seed(),
+        _ => panic!("Invalid param {}", args.first().unwrap()),
+    }
 }
