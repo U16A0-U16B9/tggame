@@ -1,7 +1,8 @@
 use crate::game::player::get_player;
 use crate::game::{create_game, get_active_game};
+use crate::utility::bot::message::send_message;
 use log::error;
-use teloxide::prelude::{Message, Requester};
+use teloxide::prelude::Message;
 use teloxide::utils::command::BotCommands;
 use teloxide::Bot;
 
@@ -22,7 +23,8 @@ pub async fn new_game(bot: Bot, msg: Message) {
     let user = msg.from().expect("User not found");
     let player = get_player(&user.id);
     if let Err(_) = player {
-        bot.send_message(
+        send_message(
+            bot,
             msg.chat.id,
             format!(
                 "Game cannot be created\
@@ -30,25 +32,27 @@ pub async fn new_game(bot: Bot, msg: Message) {
             \n/register or /start to bot\
             \nprivately"
             ),
+            None,
         )
-        .await
-        .unwrap();
+        .await;
         return;
     }
 
     let chat = msg.chat.id;
     let game_result = get_active_game(&chat);
     if let Ok(_) = game_result {
-        bot.send_message(msg.chat.id, format!("Game already exists"))
-            .await
-            .unwrap();
+        send_message(bot, msg.chat.id, format!("Game already exists"), None).await;
     } else {
         create_game(&chat).unwrap_or_else(|error| {
             error!("Error creating game: {}", error);
             panic!("Error creating game for {}", chat)
         });
-        bot.send_message(msg.chat.id, format!("Game created\nPlease type /join to join the game"))
-            .await
-            .unwrap();
+        send_message(
+            bot,
+            msg.chat.id,
+            format!("Game created\nPlease type /join to join the game"),
+            None,
+        )
+        .await;
     }
 }
