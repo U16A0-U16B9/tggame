@@ -1,11 +1,14 @@
 use crate::commands::direct_commands::register;
 use crate::commands::group_commands::new_game;
+use crate::commands::tutorial_commands::main_tutorial_menu;
+use crate::utility::bot::message::send_message;
 use log::error;
 use teloxide::prelude::*;
 use teloxide::{utils::command::BotCommands, Bot};
 
 pub mod direct_commands;
 pub mod group_commands;
+pub mod tutorial_commands;
 
 #[derive(BotCommands, Clone)]
 #[command(rename_rule = "lowercase", description = "These commands are supported:")]
@@ -18,17 +21,18 @@ pub enum Command {
     Start,
     #[command(description = "Create New Game")]
     NewGame,
+    #[command(description = "How to play Game")]
+    Tutorial,
 }
 
-pub async fn answer(bot: Bot, msg: Message, cmd: Command) -> ResponseResult<()> {
+pub async fn answer(bot: Bot, msg: Message, cmd: Command) {
     match cmd {
         Command::Help => parse_help(bot, msg).await,
         Command::Register => register(bot, msg).await,
         Command::Start => register(bot, msg).await,
         Command::NewGame => new_game(bot, msg).await,
+        Command::Tutorial => main_tutorial_menu(bot, msg.chat.id, None).await,
     };
-
-    Ok(())
 }
 
 pub async fn parse_help(bot: Bot, msg: Message) {
@@ -41,5 +45,5 @@ pub async fn parse_help(bot: Bot, msg: Message) {
         error!("Invalid chat : {}", msg.chat.id);
         panic!("Error: Invalid chat type");
     }
-    bot.send_message(msg.chat.id, message).await.unwrap();
+    send_message(bot, msg.chat.id, message, None).await
 }

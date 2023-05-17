@@ -1,5 +1,6 @@
 use crate::game::player::{create_player, get_player};
-use teloxide::prelude::{Message, Requester};
+use crate::utility::bot::message::send_message;
+use teloxide::prelude::Message;
 use teloxide::utils::command::BotCommands;
 use teloxide::Bot;
 
@@ -26,15 +27,11 @@ pub async fn register(bot: Bot, msg: Message) {
     let player = get_player(&user.id);
 
     if let Ok(_) = player {
-        bot.send_message(msg.chat.id, format!("Welcome back {}", username))
-            .await
-            .unwrap();
+        send_message(bot, msg.chat.id, format!("Welcome back {}", username), None).await;
     } else {
         let new_player = create_player(&user.id, username.as_str());
         if let Ok(_) = new_player {
-            bot.send_message(msg.chat.id, format!("Welcome {}", username))
-                .await
-                .unwrap();
+            send_message(bot, msg.chat.id, format!("Welcome {}", username), None).await;
         } else {
             panic!("User not found")
         }

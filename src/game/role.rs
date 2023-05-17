@@ -38,7 +38,9 @@ impl Role {
 
     pub fn seed() {
         let connection = &mut establish_connection();
-        diesel::delete(roles::table).execute(connection);
+        diesel::delete(roles::table)
+            .execute(connection)
+            .expect("Cannot clean db");
 
         Role::create(
             Roles::Villager,
@@ -67,5 +69,21 @@ impl Role {
             WinConditions::EliminateVillagers,
         )
         .expect(format!("Error seeding role {}", Roles::Werewolf.to_string()).as_str());
+    }
+
+    pub fn get_all() -> Vec<Role> {
+        use crate::schema::roles::dsl::*;
+
+        let connection = &mut establish_connection();
+
+        roles.load::<Role>(connection).expect("Cannot retrieve roles")
+    }
+
+    pub fn get_by_id(uuid: Uuid) -> QueryResult<Role> {
+        use crate::schema::roles::dsl::*;
+
+        let connection = &mut establish_connection();
+
+        roles.find(uuid).first::<Role>(connection)
     }
 }
