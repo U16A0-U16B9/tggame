@@ -4,28 +4,19 @@ use diesel::prelude::*;
 use teloxide::types::UserId;
 use uuid::Uuid;
 
-#[derive(Queryable)]
+#[derive(Queryable, Insertable)]
 pub struct Player {
     pub id: Uuid,
     pub user_id: String,
     pub username: String,
 }
 
-#[derive(Insertable)]
-#[diesel(table_name = players)]
-pub struct NewPlayer<'a> {
-    pub id: Uuid,
-    pub user_id: &'a str,
-    pub username: &'a str,
-}
-
 pub fn create_player(user_id: &UserId, username: &str) -> QueryResult<Player> {
     let connection = &mut establish_connection();
-    let user_id = &user_id.0.to_string();
-    let player = NewPlayer {
+    let player = Player {
         id: Uuid::new_v4(),
-        user_id,
-        username,
+        user_id: user_id.0.to_string(),
+        username: username.to_string(),
     };
 
     diesel::insert_into(players::table)

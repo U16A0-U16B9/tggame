@@ -1,5 +1,5 @@
 use crate::commands::direct_commands::register;
-use crate::commands::group_commands::new_game;
+use crate::commands::group_commands::{join_game, leave_game, new_game};
 use crate::commands::tutorial_commands::main_tutorial_menu;
 use crate::utility::bot::message::send_message;
 use log::error;
@@ -23,6 +23,10 @@ pub enum Command {
     NewGame,
     #[command(description = "How to play Game")]
     Tutorial,
+    #[command(description = "Join Game")]
+    Join,
+    #[command(description = "Leave Game")]
+    Leave,
 }
 
 pub async fn answer(bot: Bot, msg: Message, cmd: Command) {
@@ -32,6 +36,8 @@ pub async fn answer(bot: Bot, msg: Message, cmd: Command) {
         Command::Start => register(bot, msg).await,
         Command::NewGame => new_game(bot, msg).await,
         Command::Tutorial => main_tutorial_menu(bot, msg.chat.id, None).await,
+        Command::Join => join_game(bot, msg).await,
+        Command::Leave => leave_game(bot, msg).await,
     };
 }
 

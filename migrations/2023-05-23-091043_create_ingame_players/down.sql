@@ -1,0 +1,1 @@
+DROP TABLE ingame_players;-- This file should undo anything in `up.sql`

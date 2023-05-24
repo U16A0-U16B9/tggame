@@ -13,6 +13,8 @@ pub enum Command {
     Register,
     #[command(description = "same as register")]
     Start,
+    #[command(description = "How to play Game")]
+    Tutorial,
 }
 
 pub async fn register(bot: Bot, msg: Message) {

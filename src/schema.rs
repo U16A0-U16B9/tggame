@@ -18,6 +18,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    ingame_players (id) {
+        id -> Uuid,
+        game_id -> Uuid,
+        player_id -> Uuid,
+        role_id -> Nullable<Uuid>,
+        is_alive -> Bool,
+    }
+}
+
+diesel::table! {
     players (id) {
         id -> Uuid,
         user_id -> Varchar,
@@ -34,4 +44,8 @@ diesel::table! {
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(games, players, roles,);
+diesel::joinable!(ingame_players -> games (game_id));
+diesel::joinable!(ingame_players -> players (player_id));
+diesel::joinable!(ingame_players -> roles (role_id));
+
+diesel::allow_tables_to_appear_in_same_query!(games, ingame_players, players, roles,);

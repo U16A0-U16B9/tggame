@@ -1,4 +1,5 @@
 mod game_status;
+pub mod ingame_player;
 pub mod player;
 pub mod role;
 pub mod win_conditions;
@@ -19,7 +20,19 @@ pub struct Game {
 pub fn get_active_game(chat: &ChatId) -> QueryResult<Game> {
     use crate::schema::games::dsl::*;
     let connection = &mut establish_connection();
-    games.filter(chat_id.eq(&chat.0.to_string())).first::<Game>(connection)
+    games
+        .filter(chat_id.eq(&chat.0.to_string()))
+        .filter(status.ne(GameStatus::Completed))
+        .first::<Game>(connection)
+}
+
+pub fn get_lfg_game(chat: &ChatId) -> QueryResult<Game> {
+    use crate::schema::games::dsl::*;
+    let connection = &mut establish_connection();
+    games
+        .filter(chat_id.eq(&chat.0.to_string()))
+        .filter(status.eq(GameStatus::LookingForGroup))
+        .first::<Game>(connection)
 }
 
 pub fn create_game(chat: &ChatId) -> QueryResult<Game> {
