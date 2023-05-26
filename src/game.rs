@@ -45,3 +45,12 @@ pub fn create_game(chat: &ChatId) -> QueryResult<Game> {
 
     diesel::insert_into(games::table).values(&game).get_result(connection)
 }
+
+pub fn set_game_to_in_progress(game: &Game) -> QueryResult<Game> {
+    use crate::schema::games::dsl::*;
+    let connection = &mut establish_connection();
+
+    diesel::update(games.find(game.id))
+        .set(status.eq(GameStatus::InProgress))
+        .get_result::<Game>(connection)
+}

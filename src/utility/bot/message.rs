@@ -3,7 +3,7 @@ use teloxide::prelude::*;
 use teloxide::types::{ChatId, InlineKeyboardMarkup, MessageId};
 use teloxide::Bot;
 
-pub async fn send_message<M, K>(bot: Bot, chat_id: ChatId, message: M, keyboard: K)
+pub async fn send_message<M, K>(bot: &Bot, chat_id: ChatId, message: M, keyboard: K)
 where
     M: Into<String>,
     K: Into<Option<InlineKeyboardMarkup>>,
@@ -50,4 +50,8 @@ where
             }
         }
     }
+}
+
+pub fn is_message_from_group(message: &Message) -> bool {
+    message.chat.is_group()
 }
