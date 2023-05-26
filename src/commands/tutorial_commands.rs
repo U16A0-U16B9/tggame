@@ -21,7 +21,7 @@ where
     let keyboard = make_keyboard(menu, None);
 
     match message_id.into() {
-        None => send_message(bot, chat_id, name, keyboard).await,
+        None => send_message(&bot, chat_id, name, keyboard).await,
         Some(message_id) => modify_message(bot, chat_id, message_id, name, keyboard).await,
     }
 }

@@ -1,4 +1,5 @@
 use crate::commands::direct_commands::register;
+use crate::commands::group_commands::start_game::start_game;
 use crate::commands::group_commands::{join_game, leave_game, new_game};
 use crate::commands::tutorial_commands::main_tutorial_menu;
 use crate::utility::bot::message::send_message;
@@ -27,6 +28,8 @@ pub enum Command {
     Join,
     #[command(description = "Leave Game")]
     Leave,
+    #[command(description = "Start Game")]
+    StartGame,
 }
 
 pub async fn answer(bot: Bot, msg: Message, cmd: Command) {
@@ -38,6 +41,7 @@ pub async fn answer(bot: Bot, msg: Message, cmd: Command) {
         Command::Tutorial => main_tutorial_menu(bot, msg.chat.id, None).await,
         Command::Join => join_game(bot, msg).await,
         Command::Leave => leave_game(bot, msg).await,
+        Command::StartGame => start_game(bot, msg).await,
     };
 }
 
@@ -51,5 +55,5 @@ pub async fn parse_help(bot: Bot, msg: Message) {
         error!("Invalid chat : {}", msg.chat.id);
         panic!("Error: Invalid chat type");
     }
-    send_message(bot, msg.chat.id, message, None).await
+    send_message(&bot, msg.chat.id, message, None).await
 }

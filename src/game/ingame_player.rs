@@ -1,5 +1,5 @@
 use crate::game::player::Player;
-use crate::game::role::Role;
+use crate::game::role::{Role, Roles};
 use crate::game::Game;
 use crate::schema::ingame_players;
 use crate::services::database::establish_connection;
@@ -43,8 +43,31 @@ pub fn get_ingame_player(player: &Player, game: &Game) -> QueryResult<IngamePlay
         .first::<IngamePlayer>(connection)
 }
 
+pub fn get_ingame_players(game: &Game) -> QueryResult<Vec<IngamePlayer>> {
+    use crate::schema::ingame_players::dsl::*;
+    let connection = &mut establish_connection();
+    ingame_players
+        .filter(game_id.eq(game.id))
+        .load::<IngamePlayer>(connection)
+}
+
 pub fn delete_ingame_player(ingame_player: IngamePlayer) -> QueryResult<usize> {
     use crate::schema::ingame_players::dsl::*;
     let connection = &mut establish_connection();
     diesel::delete(ingame_players.filter(id.eq(ingame_player.id))).execute(connection)
+}
+
+pub fn set_role_to_ingame_player(ingame_player: &IngamePlayer, role: Roles) -> QueryResult<IngamePlayer> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::roles::dsl::*;
+    let connection = &mut establish_connection();
+
+    let role_model = roles
+        .filter(name.eq(role.to_string()))
+        .first::<Role>(connection)
+        .unwrap();
+
+    diesel::update(ingame_players.find(ingame_player.id))
+        .set(role_id.eq(role_model.id))
+        .get_result(connection)
 }

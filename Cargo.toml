@@ -16,3 +16,4 @@ uuid = "1.3.1"
 diesel-derive-enum = { version = "2.0.1", features = ["postgres"] }
 strum = "0.24.1"
 strum_macros = "0.24.3"
+rand = "0.8.5"
