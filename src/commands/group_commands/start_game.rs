@@ -1,8 +1,10 @@
-use crate::game::ingame_player::{get_ingame_player, get_ingame_players, set_role_to_ingame_player, IngamePlayer};
-use crate::game::player::{get_player_by_id, get_player_from_message};
+use crate::game::game_status::GameStatus;
+use crate::game::ingame_player::{get_ingame_players, set_role_to_ingame_player, IngamePlayer};
+use crate::game::player::get_player_by_id;
 use crate::game::role::Roles;
-use crate::game::{get_lfg_game, set_game_to_in_progress, Game};
-use crate::utility::bot::message::{is_message_from_group, send_message};
+use crate::game::set_game_to_in_progress;
+use crate::utility::bot::message::send_message;
+use crate::utility::game::validate_game;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use teloxide::prelude::Message;
@@ -10,71 +12,12 @@ use teloxide::types::ChatId;
 use teloxide::Bot;
 
 pub async fn start_game(bot: Bot, msg: Message) {
-    let game = validate_game(&bot, &msg).await;
+    let game = validate_game(&bot, &msg, GameStatus::LookingForGroup, "Cannot start game").await;
     if let None = game {
         return;
     }
     let game = game.unwrap();
-    set_ingame_roles(&bot, &msg, &game).await;
-    set_game_to_in_progress(&game).expect("Cannot start game");
-}
-
-pub async fn validate_game(bot: &Bot, msg: &Message) -> Option<Game> {
-    if !is_message_from_group(&msg) {
-        return None;
-    }
-    let player = get_player_from_message(
-        &bot,
-        &msg,
-        format!(
-            "Cannot start the game\
-        \nPlease register by sending\
-        \n/register or /start to bot\
-        \nprivately"
-        ),
-    )
-    .await;
-    if let None = player {
-        return None;
-    }
-    let player = player.unwrap();
-
-    let game = get_lfg_game(&msg.chat.id);
-    if let Err(_) = game {
-        send_message(
-            &bot,
-            msg.chat.id,
-            format!(
-                "Cannot join the game\
-            \ngame not found"
-            ),
-            None,
-        )
-        .await;
-        return None;
-    }
-    let game = game.unwrap();
-
-    let ingame_player = get_ingame_player(&player, &game);
-    if let Err(_) = ingame_player {
-        send_message(
-            &bot,
-            msg.chat.id,
-            format!(
-                "Cannot start the game\
-            \nYou are not in the game"
-            ),
-            None,
-        )
-        .await;
-        return None;
-    }
-
-    return Some(game);
-}
-pub async fn set_ingame_roles(bot: &Bot, msg: &Message, game: &Game) {
-    let mut ingame_players = get_ingame_players(&game).expect("cannot retrieve ingame players");
-
+    let ingame_players = get_ingame_players(&game).expect("cannot retrieve ingame players");
     // TODO: this should be increased
     if ingame_players.len() < 2 {
         send_message(
@@ -89,6 +32,11 @@ pub async fn set_ingame_roles(bot: &Bot, msg: &Message, game: &Game) {
         .await;
         return;
     }
+    set_ingame_roles(&bot, ingame_players).await;
+    set_game_to_in_progress(&game).expect("Cannot start game");
+}
+
+pub async fn set_ingame_roles(bot: &Bot, mut ingame_players: Vec<IngamePlayer>) {
     ingame_players.shuffle(&mut thread_rng());
 
     let werewolf = ingame_players.pop().unwrap();

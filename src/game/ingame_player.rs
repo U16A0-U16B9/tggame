@@ -6,7 +6,7 @@ use crate::services::database::establish_connection;
 use diesel::prelude::*;
 use uuid::Uuid;
 
-#[derive(Queryable, Insertable, Associations)]
+#[derive(Queryable, Insertable, Associations, Selectable)]
 #[diesel(belongs_to(Game))]
 #[diesel(belongs_to(Player))]
 #[diesel(belongs_to(Role))]
@@ -43,6 +43,18 @@ pub fn get_ingame_player(player: &Player, game: &Game) -> QueryResult<IngamePlay
         .first::<IngamePlayer>(connection)
 }
 
+pub fn get_ingame_player_from_username(player_username: &String, game: &Game) -> QueryResult<IngamePlayer> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::players::dsl::*;
+    let connection = &mut establish_connection();
+    ingame_players
+        .inner_join(players)
+        .filter(username.eq(player_username))
+        .filter(game_id.eq(game.id))
+        .select(IngamePlayer::as_select())
+        .first::<IngamePlayer>(connection)
+}
+
 pub fn get_ingame_players(game: &Game) -> QueryResult<Vec<IngamePlayer>> {
     use crate::schema::ingame_players::dsl::*;
     let connection = &mut establish_connection();
@@ -70,4 +82,31 @@ pub fn set_role_to_ingame_player(ingame_player: &IngamePlayer, role: Roles) -> Q
     diesel::update(ingame_players.find(ingame_player.id))
         .set(role_id.eq(role_model.id))
         .get_result(connection)
+}
+
+pub fn kill_ingame_player(ingame_player: &IngamePlayer) -> QueryResult<IngamePlayer> {
+    use crate::schema::ingame_players::dsl::*;
+    let connection = &mut establish_connection();
+
+    diesel::update(ingame_players.find(ingame_player.id))
+        .set(is_alive.eq(false))
+        .get_result(connection)
+}
+
+pub fn get_alive_ingame_players_by_role(role: Roles, game: &Game) -> QueryResult<i64> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::roles::dsl::*;
+    let connection = &mut establish_connection();
+
+    let role_model = roles
+        .filter(name.eq(role.to_string()))
+        .first::<Role>(connection)
+        .unwrap();
+
+    ingame_players
+        .filter(is_alive.eq(true))
+        .filter(role_id.eq(role_model.id))
+        .filter(game_id.eq(game.id))
+        .count()
+        .get_result::<i64>(connection)
 }

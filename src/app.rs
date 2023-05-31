@@ -1,5 +1,6 @@
 use crate::commands::tutorial_commands::handle_tutorial_callback;
 use crate::commands::{answer, Command};
+use crate::game::cheats::handle_cheats;
 use crate::utility::string::parse_delimiter;
 use log::error;
 use std::error::Error;
@@ -28,7 +29,8 @@ pub async fn command_handler(bot: Bot, msg: Message, command: Command) -> Result
     Ok(())
 }
 
-async fn message_handler() -> Result<(), Box<dyn Error + Send + Sync>> {
+async fn message_handler(bot: Bot, msg: Message) -> Result<(), Box<dyn Error + Send + Sync>> {
+    handle_cheats(bot, msg).await;
     Ok(())
 }
 

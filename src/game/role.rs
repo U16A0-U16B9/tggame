@@ -86,4 +86,12 @@ impl Role {
 
         roles.find(uuid).first::<Role>(connection)
     }
+
+    pub fn get(role: Roles) -> QueryResult<Role> {
+        use crate::schema::roles::dsl::*;
+
+        let connection = &mut establish_connection();
+
+        roles.filter(name.eq(role.to_string())).first::<Role>(connection)
+    }
 }
