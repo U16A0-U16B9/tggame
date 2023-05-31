@@ -1,3 +1,6 @@
+use crate::game::role::Role;
+use crate::game::win_conditions::WinConditions;
+use crate::game::Game;
 use crate::schema::players;
 use crate::services::database::establish_connection;
 use crate::utility::bot::message::send_message;
@@ -7,7 +10,7 @@ use teloxide::types::{Message, UserId};
 use teloxide::Bot;
 use uuid::Uuid;
 
-#[derive(Queryable, Insertable)]
+#[derive(Queryable, Insertable, Selectable)]
 pub struct Player {
     pub id: Uuid,
     pub user_id: String,
@@ -71,4 +74,26 @@ where
             None
         }
     }
+}
+
+pub fn get_players_from_game_by_win_condition(game: &Game, win: &WinConditions) -> QueryResult<Vec<Player>> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::players::dsl::*;
+    use crate::schema::roles::dsl::*;
+    let connection = &mut establish_connection();
+
+    let role_model = roles
+        .filter(win_condition.eq(win.to_string()))
+        .load::<Role>(connection)
+        .unwrap();
+
+    let role_ids: Vec<Uuid> = role_model.iter().map(|role| role.id).collect();
+
+    players
+        .inner_join(ingame_players)
+        .filter(game_id.eq(game.id))
+        .filter(is_alive.eq(true))
+        .filter(role_id.eq_any(role_ids))
+        .select(Player::as_select())
+        .load::<Player>(connection)
 }

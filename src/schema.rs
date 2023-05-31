@@ -4,16 +4,22 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "status"))]
     pub struct Status;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "time_of_day"))]
+    pub struct TimeOfDay;
 }
 
 diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::Status;
+    use super::sql_types::TimeOfDay;
 
     games (id) {
         id -> Uuid,
         chat_id -> Varchar,
         status -> Status,
+        time_of_day -> TimeOfDay,
     }
 }
 
