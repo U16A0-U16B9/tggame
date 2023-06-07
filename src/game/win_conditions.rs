@@ -1,4 +1,4 @@
-use crate::game::ingame_player::get_alive_ingame_players_by_role;
+use crate::game::ingame_player::{get_alive_ingame_players_by_role, get_dead_ingame_players_by_role};
 use crate::game::role::Roles;
 use crate::game::win_conditions::WinConditions::{Die, EliminateVillagers, EliminateWerewolves};
 use crate::game::Game;
@@ -20,8 +20,8 @@ pub fn handle_win_condition(game: &Game) -> Option<WinConditions> {
         return Some(EliminateWerewolves);
     }
 
-    let tanner = get_alive_ingame_players_by_role(Roles::Tanner, game).unwrap();
-    if tanner == 0 {
+    let tanner = get_dead_ingame_players_by_role(Roles::Tanner, game).unwrap();
+    if tanner > 0 {
         return Some(Die);
     }
 

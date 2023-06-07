@@ -1,0 +1,1 @@
+DROP TABLE actions;-- This file should undo anything in `up.sql`

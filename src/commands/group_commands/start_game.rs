@@ -19,7 +19,7 @@ pub async fn start_game(bot: Bot, msg: Message) {
     let game = game.unwrap();
     let ingame_players = get_ingame_players(&game).expect("cannot retrieve ingame players");
     // TODO: this should be increased
-    if ingame_players.len() < 2 {
+    if ingame_players.len() < 4 {
         send_message(
             &bot,
             msg.chat.id,
@@ -46,6 +46,8 @@ pub async fn set_ingame_roles(bot: &Bot, mut ingame_players: Vec<IngamePlayer>) 
     notify_player_of_role(bot, &werewolf, Roles::Werewolf).await;
     set_role_to_ingame_player(&seer, Roles::Seer).expect("cannot asign role");
     notify_player_of_role(bot, &seer, Roles::Seer).await;
+    set_role_to_ingame_player(&seer, Roles::Tanner).expect("cannot asign role");
+    notify_player_of_role(bot, &seer, Roles::Tanner).await;
 
     for ingame_player in ingame_players.iter() {
         set_role_to_ingame_player(&ingame_player, Roles::Villager).expect("cannot asign role");

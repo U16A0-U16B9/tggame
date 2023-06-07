@@ -2,12 +2,30 @@
 
 pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "action"))]
+    pub struct Action;
+
+    #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "status"))]
     pub struct Status;
 
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "time_of_day"))]
     pub struct TimeOfDay;
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Action;
+    use super::sql_types::TimeOfDay;
+
+    actions (id) {
+        id -> Uuid,
+        action -> Action,
+        ingame_player_id -> Uuid,
+        time_of_day -> TimeOfDay,
+        completed -> Bool,
+    }
 }
 
 diesel::table! {
@@ -50,8 +68,9 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(actions -> ingame_players (ingame_player_id));
 diesel::joinable!(ingame_players -> games (game_id));
 diesel::joinable!(ingame_players -> players (player_id));
 diesel::joinable!(ingame_players -> roles (role_id));
 
-diesel::allow_tables_to_appear_in_same_query!(games, ingame_players, players, roles,);
+diesel::allow_tables_to_appear_in_same_query!(actions, games, ingame_players, players, roles,);
