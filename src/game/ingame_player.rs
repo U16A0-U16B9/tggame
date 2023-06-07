@@ -43,6 +43,14 @@ pub fn get_ingame_player(player: &Player, game: &Game) -> QueryResult<IngamePlay
         .first::<IngamePlayer>(connection)
 }
 
+pub fn get_ingame_player_by_id(ingame_player_id: Uuid) -> QueryResult<IngamePlayer> {
+    use crate::schema::ingame_players::dsl::*;
+    let connection = &mut establish_connection();
+    ingame_players
+        .filter(id.eq(ingame_player_id))
+        .first::<IngamePlayer>(connection)
+}
+
 pub fn get_ingame_player_from_username(player_username: &String, game: &Game) -> QueryResult<IngamePlayer> {
     use crate::schema::ingame_players::dsl::*;
     use crate::schema::players::dsl::*;
@@ -105,6 +113,24 @@ pub fn get_alive_ingame_players_by_role(role: Roles, game: &Game) -> QueryResult
 
     ingame_players
         .filter(is_alive.eq(true))
+        .filter(role_id.eq(role_model.id))
+        .filter(game_id.eq(game.id))
+        .count()
+        .get_result::<i64>(connection)
+}
+
+pub fn get_dead_ingame_players_by_role(role: Roles, game: &Game) -> QueryResult<i64> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::roles::dsl::*;
+    let connection = &mut establish_connection();
+
+    let role_model = roles
+        .filter(name.eq(role.to_string()))
+        .first::<Role>(connection)
+        .unwrap();
+
+    ingame_players
+        .filter(is_alive.eq(false))
         .filter(role_id.eq(role_model.id))
         .filter(game_id.eq(game.id))
         .count()

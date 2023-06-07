@@ -1,7 +1,10 @@
+use crate::game::actions::win::set_win_condition;
+use crate::game::actions::{handle_actions, seer, werewolf};
 use crate::game::game_status::GameStatus;
 use crate::game::ingame_player::get_ingame_player;
 use crate::game::player::get_player_from_message;
 use crate::game::time_of_day::TimeOfDay;
+use crate::game::win_conditions::handle_win_condition;
 use crate::game::{get_active_game, get_lfg_game, update_game_time_of_day, Game};
 use crate::utility::bot::message::{is_message_from_group, send_message};
 use teloxide::prelude::{ChatId, Message};
@@ -76,12 +79,28 @@ where
 
 pub async fn advance_game_time_of_day(bot: &Bot, game: &Game) {
     let new_time = game.time_of_day.advance();
+    handle_actions(bot, game, &new_time).await;
+    let win = handle_win_condition(game);
+
+    if let Some(win_condition) = win {
+        return set_win_condition(bot, game, win_condition).await;
+    }
 
     let message = match new_time {
-        TimeOfDay::Dawn => format!("Sun is rising, people are waking up, nothing unusual happened during night"),
-        TimeOfDay::Day => format!("day passes by"),
-        TimeOfDay::Dusk => format!("Sun is setting, folks are getting ready to sleep"),
-        TimeOfDay::Night => format!("Night is dark, everybody is asleep"),
+        TimeOfDay::Dawn => {
+            format!("Sun is rising, people are waking up, nothing unusual happened during night")
+        }
+        TimeOfDay::Day => {
+            format!("day passes by")
+        }
+        TimeOfDay::Dusk => {
+            format!("Sun is setting, folks are getting ready to sleep")
+        }
+        TimeOfDay::Night => {
+            werewolf::action_message(bot, game).await;
+            seer::action_message(bot, game).await;
+            format!("Night is dark, almost everybody is asleep")
+        }
     };
 
     update_game_time_of_day(game, new_time).expect("cannot update game time of day");

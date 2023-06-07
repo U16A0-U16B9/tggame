@@ -1,5 +1,6 @@
 use crate::commands::tutorial_commands::handle_tutorial_callback;
 use crate::commands::{answer, Command};
+use crate::game::actions::handle_action_callback;
 use crate::game::cheats::handle_cheats;
 use crate::utility::string::parse_delimiter;
 use log::error;
@@ -42,8 +43,9 @@ async fn callback_handler(bot: Bot, q: CallbackQuery) -> Result<(), Box<dyn Erro
             error!("no callback data found")
         }
         "tutorial" => handle_tutorial_callback(post_delimiter, bot, q).await,
+        "action" => handle_action_callback(post_delimiter, bot, q).await,
         &_ => {
-            error!("no callback action found")
+            error!("no callback action found AAA")
         }
     }
 

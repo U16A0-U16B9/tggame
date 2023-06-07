@@ -1,4 +1,4 @@
-use crate::game::role::Role;
+use crate::game::role::{Role, Roles};
 use crate::game::win_conditions::WinConditions;
 use crate::game::Game;
 use crate::schema::players;
@@ -60,10 +60,9 @@ where
                         bot,
                         message.chat.id,
                         format!(
-                            "Cannot leave the game\
-            \nPlease register by sending\
-            \n/register or /start to bot\
-            \nprivately"
+                            "Please register by sending\
+                            \n/register or /start to bot\
+                            \nprivately"
                         ),
                         None,
                     )
@@ -94,6 +93,51 @@ pub fn get_players_from_game_by_win_condition(game: &Game, win: &WinConditions) 
         .filter(game_id.eq(game.id))
         .filter(is_alive.eq(true))
         .filter(role_id.eq_any(role_ids))
+        .select(Player::as_select())
+        .load::<Player>(connection)
+}
+
+pub fn get_all_non_werewolf_players_from_game(game: &Game) -> QueryResult<Vec<Player>> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::players::dsl::*;
+    let connection = &mut establish_connection();
+
+    let werewolf = Role::get(Roles::Werewolf).unwrap();
+    players
+        .inner_join(ingame_players)
+        .filter(game_id.eq(game.id))
+        .filter(is_alive.eq(true))
+        .filter(role_id.ne(werewolf.id))
+        .select(Player::as_select())
+        .load::<Player>(connection)
+}
+
+pub fn get_all_non_seers_players_from_game(game: &Game) -> QueryResult<Vec<Player>> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::players::dsl::*;
+    let connection = &mut establish_connection();
+
+    let werewolf = Role::get(Roles::Seer).unwrap();
+    players
+        .inner_join(ingame_players)
+        .filter(game_id.eq(game.id))
+        .filter(is_alive.eq(true))
+        .filter(role_id.ne(werewolf.id))
+        .select(Player::as_select())
+        .load::<Player>(connection)
+}
+
+pub fn get_all_players_from_game_by_role(game: &Game, role: Roles) -> QueryResult<Vec<Player>> {
+    use crate::schema::ingame_players::dsl::*;
+    use crate::schema::players::dsl::*;
+    let connection = &mut establish_connection();
+
+    let role_model = Role::get(role).unwrap();
+    players
+        .inner_join(ingame_players)
+        .filter(game_id.eq(game.id))
+        .filter(is_alive.eq(true))
+        .filter(role_id.eq(role_model.id))
         .select(Player::as_select())
         .load::<Player>(connection)
 }
